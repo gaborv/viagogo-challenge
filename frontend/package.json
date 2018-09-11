@@ -1,0 +1,19 @@
+{
+  "name": "viagogo-takehome",
+  "version": "1.0.0",
+  "description": "The frontend part of the Viagogo take-home exercise for event displaying.",
+  "main": " ",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:debug": "elm make src/EventList.elm --output=build/eventList.debug.js --debug && npm run copy:debug",
+    "build:release": "elm make src/EventList.elm --output=build/eventList.min.js --optimize && npm run copy:release",
+    "copy:debug": "cp build/eventList.debug.js ../backend/EventViewer/wwwroot/js/ || copy build\\eventList.debug.js ..\\backend\\EventViewer\\wwwroot\\js\\",
+    "copy:release": "cp build/eventList.min.js ../backend/EventViewer/wwwroot/js/ || copy build\\eventList.min.js ..\\backend\\EventViewer\\wwwroot\\js\\"
+  },
+  "author": "Gabor Varga",
+  "license": "MIT",
+  "dependencies": {
+    "elm": "^0.19.0-bugfix2",
+    "elm-test": "^0.19.0-beta8"
+  }
+}
