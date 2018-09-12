@@ -47,3 +47,4 @@ Building and running the backend:
 
 For convenience I icluded the generated js files in the backend codebase, so the frontend build can be skipped.
 
+Instructions to temporarily disable CORS in Safari/Chrome: https://www.thepolyglotdeveloper.com/2014/08/bypass-cors-errors-testing-apis-locally/
