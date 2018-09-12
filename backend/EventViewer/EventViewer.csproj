@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="GogoKit" Version="0.34.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-module AuthorizedRequest exposing
+module Domain.AuthorizedRequest exposing
     ( get
     , getWithCurrency
     )

@@ -6236,9 +6236,9 @@ var author$project$AuthorizedRequest$get = F3(
 				withCredentials: false
 			});
 	});
-var author$project$Event$Event = F5(
-	function (minimumPrice, numberOfTickets, startsAt, listingsUrl, venue) {
-		return {listingsUrl: listingsUrl, minimumPrice: minimumPrice, numberOfTickets: numberOfTickets, startsAt: startsAt, venue: venue};
+var author$project$Event$Event = F6(
+	function (id, minimumPrice, numberOfTickets, startsAt, listingsUrl, venue) {
+		return {id: id, listingsUrl: listingsUrl, minimumPrice: minimumPrice, numberOfTickets: numberOfTickets, startsAt: startsAt, venue: venue};
 	});
 var elm$core$Basics$composeR = F3(
 	function (f, g, x) {
@@ -7365,10 +7365,11 @@ var author$project$Event$venueDecoder = A5(
 		elm$json$Json$Decode$string),
 	author$project$Location$locationDecoder);
 var elm$json$Json$Decode$int = _Json_decodeInt;
-var elm$json$Json$Decode$map5 = _Json_map5;
-var author$project$Event$eventDecoder = A6(
-	elm$json$Json$Decode$map5,
+var elm$json$Json$Decode$map6 = _Json_map6;
+var author$project$Event$eventDecoder = A7(
+	elm$json$Json$Decode$map6,
 	author$project$Event$Event,
+	A2(elm$json$Json$Decode$field, 'id', elm$json$Json$Decode$int),
 	A2(
 		elm$json$Json$Decode$at,
 		_List_fromArray(
@@ -7616,39 +7617,37 @@ var isaacseymour$deprecated_time$Time$DateTime$month = function (_n0) {
 	var data = _n0.a;
 	return isaacseymour$deprecated_time$Time$Date$month(data.date);
 };
-var author$project$EventList$monthAbbrv = function (monthSeq) {
+var author$project$Event$monthName = function (monthSeq) {
 	var _n0 = isaacseymour$deprecated_time$Time$DateTime$month(monthSeq);
 	switch (_n0) {
 		case 1:
-			return 'Jan';
+			return 'January';
 		case 2:
-			return 'Feb';
+			return 'February';
 		case 3:
-			return 'Mar';
+			return 'March';
 		case 4:
-			return 'Apr';
+			return 'April';
 		case 5:
 			return 'May';
 		case 6:
-			return 'Jun';
+			return 'June';
 		case 7:
-			return 'Jul';
+			return 'July';
 		case 8:
-			return 'Aug';
+			return 'August';
 		case 9:
-			return 'Sep';
+			return 'September';
 		case 10:
-			return 'Oct';
+			return 'October';
 		case 11:
-			return 'Nov';
+			return 'November';
 		case 12:
-			return 'Dec';
+			return 'December';
 		default:
 			return 'DateTime.month never returns anything outside the above range.';
 	}
 };
-var elm$html$Html$h1 = _VirtualDom_node('h1');
-var elm$html$Html$h2 = _VirtualDom_node('h2');
 var isaacseymour$deprecated_time$Time$Date$day = function (_n0) {
 	var inner = _n0.a;
 	return inner.day;
@@ -7656,6 +7655,19 @@ var isaacseymour$deprecated_time$Time$Date$day = function (_n0) {
 var isaacseymour$deprecated_time$Time$DateTime$day = function (_n0) {
 	var data = _n0.a;
 	return isaacseymour$deprecated_time$Time$Date$day(data.date);
+};
+var isaacseymour$deprecated_time$Time$Date$year = function (_n0) {
+	var inner = _n0.a;
+	return inner.year;
+};
+var isaacseymour$deprecated_time$Time$DateTime$year = function (_n0) {
+	var data = _n0.a;
+	return isaacseymour$deprecated_time$Time$Date$year(data.date);
+};
+var author$project$Event$dateToString = function (date) {
+	return author$project$Event$monthName(date) + (' ' + (elm$core$String$fromInt(
+		isaacseymour$deprecated_time$Time$DateTime$day(date)) + (', ' + elm$core$String$fromInt(
+		isaacseymour$deprecated_time$Time$DateTime$year(date)))));
 };
 var isaacseymour$deprecated_time$Time$DateTime$hour = function (_n0) {
 	var offset = _n0.a.offset;
@@ -7665,55 +7677,595 @@ var isaacseymour$deprecated_time$Time$DateTime$minute = function (_n0) {
 	var offset = _n0.a.offset;
 	return (A2(elm$core$Basics$modBy, isaacseymour$deprecated_time$Time$Internal$hourMs, offset) / isaacseymour$deprecated_time$Time$Internal$minuteMs) | 0;
 };
-var author$project$EventList$viewEvent = function (event) {
-	return A2(
-		elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				elm$html$Html$h1,
-				_List_Nil,
-				_List_fromArray(
-					[
-						elm$html$Html$text(event.venue.name),
-						elm$html$Html$text('––'),
-						elm$html$Html$text(event.venue.city)
-					])),
-				A2(
-				elm$html$Html$h2,
-				_List_Nil,
-				_List_fromArray(
-					[
-						elm$html$Html$text(
-						author$project$EventList$monthAbbrv(event.startsAt)),
-						elm$html$Html$text(
-						elm$core$String$fromInt(
-							isaacseymour$deprecated_time$Time$DateTime$day(event.startsAt))),
-						elm$html$Html$text(', '),
-						elm$html$Html$text(
-						elm$core$String$fromInt(
-							isaacseymour$deprecated_time$Time$DateTime$hour(event.startsAt))),
-						elm$html$Html$text(
-						elm$core$String$fromInt(
-							isaacseymour$deprecated_time$Time$DateTime$minute(event.startsAt)))
-					]))
-			]));
+var author$project$Event$time24h = function (time) {
+	var minute = (isaacseymour$deprecated_time$Time$DateTime$minute(time) < 10) ? ('0' + elm$core$String$fromInt(
+		isaacseymour$deprecated_time$Time$DateTime$minute(time))) : elm$core$String$fromInt(
+		isaacseymour$deprecated_time$Time$DateTime$minute(time));
+	var hour = elm$core$String$fromInt(
+		isaacseymour$deprecated_time$Time$DateTime$hour(time));
+	return hour + (':' + minute);
 };
-var author$project$EventList$eventsView = function (events) {
+var elm$core$String$fromFloat = _String_fromNumber;
+var elm$html$Html$a = _VirtualDom_node('a');
+var elm$html$Html$h4 = _VirtualDom_node('h4');
+var elm$html$Html$h6 = _VirtualDom_node('h6');
+var elm$html$Html$p = _VirtualDom_node('p');
+var elm$html$Html$span = _VirtualDom_node('span');
+var elm$json$Json$Encode$string = _Json_wrap;
+var elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$string(string));
+	});
+var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
+var elm$html$Html$Attributes$href = function (url) {
 	return A2(
-		elm$html$Html$div,
-		_List_Nil,
-		A2(elm$core$List$map, author$project$EventList$viewEvent, events));
+		elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
 };
+var author$project$Event$viewEvent = F2(
+	function (isLowestPrice, event) {
+		var header = isLowestPrice ? A2(
+			elm$html$Html$div,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('card-header bg-success text-white')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$span,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('badge badge-warning')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('Cheapest!')
+						])),
+					elm$html$Html$text(' from '),
+					A2(
+					elm$html$Html$span,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('font-weight-bold')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('$'),
+							elm$html$Html$text(
+							elm$core$String$fromFloat(event.minimumPrice))
+						]))
+				])) : A2(
+			elm$html$Html$div,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('card-header')
+				]),
+			_List_fromArray(
+				[
+					elm$html$Html$text('Tickets starting from '),
+					A2(
+					elm$html$Html$span,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('font-weight-bold')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('$'),
+							elm$html$Html$text(
+							elm$core$String$fromFloat(event.minimumPrice))
+						]))
+				]));
+		return A2(
+			elm$html$Html$div,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('card mt-1 mb-3 shadow-sm')
+				]),
+			_List_fromArray(
+				[
+					header,
+					A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('card-body')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$h4,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$class('card-title')
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									author$project$Event$dateToString(event.startsAt))
+								])),
+							A2(
+							elm$html$Html$h6,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$class('card-subtitle mb-2 text-muted')
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									author$project$Event$time24h(event.startsAt))
+								])),
+							A2(
+							elm$html$Html$p,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$class('card-text')
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text(event.venue.name),
+									elm$html$Html$text(', '),
+									elm$html$Html$text(event.venue.city),
+									elm$html$Html$text(', '),
+									elm$html$Html$text(event.venue.country)
+								])),
+							A2(
+							elm$html$Html$a,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$href('#'),
+									elm$html$Html$Attributes$class('btn btn-success')
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text('Buy tickets!')
+								]))
+						]))
+				]));
+	});
+var elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var elm$core$List$partition = F2(
+	function (pred, list) {
+		var step = F2(
+			function (x, _n0) {
+				var trues = _n0.a;
+				var falses = _n0.b;
+				return pred(x) ? _Utils_Tuple2(
+					A2(elm$core$List$cons, x, trues),
+					falses) : _Utils_Tuple2(
+					trues,
+					A2(elm$core$List$cons, x, falses));
+			});
+		return A3(
+			elm$core$List$foldr,
+			step,
+			_Utils_Tuple2(_List_Nil, _List_Nil),
+			list);
+	});
+var author$project$Grouping$groupItems = F2(
+	function (groupDefinitions, allItems) {
+		return elm$core$List$reverse(
+			A3(
+				elm$core$List$foldl,
+				F2(
+					function (groupDefinition, _n0) {
+						var groups = _n0.a;
+						var items = _n0.b;
+						var _n1 = A2(elm$core$List$partition, groupDefinition.filter, items);
+						var itemsInGroup = _n1.a;
+						var remainingItems = _n1.b;
+						var group = {items: itemsInGroup, specialItemSelector: groupDefinition.specialItemSelector, title: groupDefinition.title};
+						return elm$core$List$isEmpty(itemsInGroup) ? _Utils_Tuple2(groups, remainingItems) : _Utils_Tuple2(
+							A2(elm$core$List$cons, group, groups),
+							remainingItems);
+					}),
+				_Utils_Tuple2(_List_Nil, allItems),
+				groupDefinitions).a);
+	});
+var elm$html$Html$h5 = _VirtualDom_node('h5');
+var elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var elm$core$List$takeReverse = F3(
+	function (n, list, kept) {
+		takeReverse:
+		while (true) {
+			if (n <= 0) {
+				return kept;
+			} else {
+				if (!list.b) {
+					return kept;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs,
+						$temp$kept = A2(elm$core$List$cons, x, kept);
+					n = $temp$n;
+					list = $temp$list;
+					kept = $temp$kept;
+					continue takeReverse;
+				}
+			}
+		}
+	});
+var elm$core$List$takeTailRec = F2(
+	function (n, list) {
+		return elm$core$List$reverse(
+			A3(elm$core$List$takeReverse, n, list, _List_Nil));
+	});
+var elm$core$List$takeFast = F3(
+	function (ctr, n, list) {
+		if (n <= 0) {
+			return _List_Nil;
+		} else {
+			var _n0 = _Utils_Tuple2(n, list);
+			_n0$1:
+			while (true) {
+				_n0$5:
+				while (true) {
+					if (!_n0.b.b) {
+						return list;
+					} else {
+						if (_n0.b.b.b) {
+							switch (_n0.a) {
+								case 1:
+									break _n0$1;
+								case 2:
+									var _n2 = _n0.b;
+									var x = _n2.a;
+									var _n3 = _n2.b;
+									var y = _n3.a;
+									return _List_fromArray(
+										[x, y]);
+								case 3:
+									if (_n0.b.b.b.b) {
+										var _n4 = _n0.b;
+										var x = _n4.a;
+										var _n5 = _n4.b;
+										var y = _n5.a;
+										var _n6 = _n5.b;
+										var z = _n6.a;
+										return _List_fromArray(
+											[x, y, z]);
+									} else {
+										break _n0$5;
+									}
+								default:
+									if (_n0.b.b.b.b && _n0.b.b.b.b.b) {
+										var _n7 = _n0.b;
+										var x = _n7.a;
+										var _n8 = _n7.b;
+										var y = _n8.a;
+										var _n9 = _n8.b;
+										var z = _n9.a;
+										var _n10 = _n9.b;
+										var w = _n10.a;
+										var tl = _n10.b;
+										return (ctr > 1000) ? A2(
+											elm$core$List$cons,
+											x,
+											A2(
+												elm$core$List$cons,
+												y,
+												A2(
+													elm$core$List$cons,
+													z,
+													A2(
+														elm$core$List$cons,
+														w,
+														A2(elm$core$List$takeTailRec, n - 4, tl))))) : A2(
+											elm$core$List$cons,
+											x,
+											A2(
+												elm$core$List$cons,
+												y,
+												A2(
+													elm$core$List$cons,
+													z,
+													A2(
+														elm$core$List$cons,
+														w,
+														A3(elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
+									} else {
+										break _n0$5;
+									}
+							}
+						} else {
+							if (_n0.a === 1) {
+								break _n0$1;
+							} else {
+								break _n0$5;
+							}
+						}
+					}
+				}
+				return list;
+			}
+			var _n1 = _n0.b;
+			var x = _n1.a;
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var elm$core$List$take = F2(
+	function (n, list) {
+		return A3(elm$core$List$takeFast, 0, n, list);
+	});
+var elm_community$list_extra$List$Extra$groupsOfWithStep = F3(
+	function (size, step, xs) {
+		var xs_ = A2(elm$core$List$drop, step, xs);
+		var thisGroup = A2(elm$core$List$take, size, xs);
+		var okayLength = _Utils_eq(
+			size,
+			elm$core$List$length(thisGroup));
+		var okayArgs = (size > 0) && (step > 0);
+		return (okayArgs && okayLength) ? A2(
+			elm$core$List$cons,
+			thisGroup,
+			A3(elm_community$list_extra$List$Extra$groupsOfWithStep, size, step, xs_)) : _List_Nil;
+	});
+var elm_community$list_extra$List$Extra$groupsOf = F2(
+	function (size, xs) {
+		return A3(elm_community$list_extra$List$Extra$groupsOfWithStep, size, size, xs);
+	});
+var author$project$Grouping$renderGrouping = F2(
+	function (viewItem, _n0) {
+		var title = _n0.title;
+		var items = _n0.items;
+		var specialItemSelector = _n0.specialItemSelector;
+		var specialItem = specialItemSelector(items);
+		return A2(
+			elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('p-2 bg-secondary text-white text-center')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$h5,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(title)
+								]))
+						])),
+					A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('p-3 bg-light')
+						]),
+					A2(
+						elm$core$List$map,
+						function (rowItems) {
+							return A2(
+								elm$html$Html$div,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$class('card-deck')
+									]),
+								A2(
+									elm$core$List$map,
+									function (item) {
+										return A2(
+											viewItem,
+											_Utils_eq(
+												elm$core$Maybe$Just(item),
+												specialItem),
+											item);
+									},
+									rowItems));
+						},
+						A2(elm_community$list_extra$List$Extra$groupsOf, 3, items)))
+				]));
+	});
+var elm$core$List$intersperse = F2(
+	function (sep, xs) {
+		if (!xs.b) {
+			return _List_Nil;
+		} else {
+			var hd = xs.a;
+			var tl = xs.b;
+			var step = F2(
+				function (x, rest) {
+					return A2(
+						elm$core$List$cons,
+						sep,
+						A2(elm$core$List$cons, x, rest));
+				});
+			var spersed = A3(elm$core$List$foldr, step, _List_Nil, tl);
+			return A2(elm$core$List$cons, hd, spersed);
+		}
+	});
+var author$project$Grouping$showInGroups = F3(
+	function (groupDefinitions, viewItem, items) {
+		var groups = A2(author$project$Grouping$groupItems, groupDefinitions, items);
+		return A2(
+			elm$html$Html$div,
+			_List_Nil,
+			A2(
+				elm$core$List$intersperse,
+				A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('p-4')
+						]),
+					_List_Nil),
+				A2(
+					elm$core$List$map,
+					author$project$Grouping$renderGrouping(viewItem),
+					groups)));
+	});
+var author$project$Location$Distance = function (a) {
+	return {$: 'Distance', a: a};
+};
+var elm$core$Basics$atan2 = _Basics_atan2;
+var elm$core$Basics$cos = _Basics_cos;
+var elm$core$Basics$pi = _Basics_pi;
+var elm$core$Basics$degrees = function (angleInDegrees) {
+	return (angleInDegrees * elm$core$Basics$pi) / 180;
+};
+var elm$core$Basics$sin = _Basics_sin;
+var elm$core$Basics$sqrt = _Basics_sqrt;
+var author$project$Location$distanceFrom = F2(
+	function (_n0, _n1) {
+		var l1 = _n0.a;
+		var l2 = _n1.a;
+		var radiusOfEarth = 6371008;
+		var dLon = elm$core$Basics$degrees(l2.longitude - l1.longitude);
+		var dLat = elm$core$Basics$degrees(l2.latitude - l1.latitude);
+		var a = A2(
+			elm$core$Basics$pow,
+			elm$core$Basics$sin(dLat / 2),
+			2) + ((elm$core$Basics$cos(
+			elm$core$Basics$degrees(l1.latitude)) * elm$core$Basics$cos(
+			elm$core$Basics$degrees(l2.latitude))) * A2(
+			elm$core$Basics$pow,
+			elm$core$Basics$sin(dLon / 2),
+			2));
+		var c = 2 * A2(
+			elm$core$Basics$atan2,
+			elm$core$Basics$sqrt(a),
+			elm$core$Basics$sqrt(1 - a));
+		return author$project$Location$Distance(radiusOfEarth * c);
+	});
+var author$project$Location$inKm = function (_n0) {
+	var dm = _n0.a;
+	return dm / 1000;
+};
+var elm$core$Debug$log = _Debug_log;
+var elm_community$list_extra$List$Extra$minimumBy = F2(
+	function (f, ls) {
+		var minBy = F2(
+			function (x, _n1) {
+				var y = _n1.a;
+				var fy = _n1.b;
+				var fx = f(x);
+				return (_Utils_cmp(fx, fy) < 0) ? _Utils_Tuple2(x, fx) : _Utils_Tuple2(y, fy);
+			});
+		if (ls.b) {
+			if (!ls.b.b) {
+				var l_ = ls.a;
+				return elm$core$Maybe$Just(l_);
+			} else {
+				var l_ = ls.a;
+				var ls_ = ls.b;
+				return elm$core$Maybe$Just(
+					A3(
+						elm$core$List$foldl,
+						minBy,
+						_Utils_Tuple2(
+							l_,
+							f(l_)),
+						ls_).a);
+			}
+		} else {
+			return elm$core$Maybe$Nothing;
+		}
+	});
+var author$project$EventList$eventsView = F2(
+	function (flags, events) {
+		var userLocation = A2(author$project$Location$fromCoordinates, flags.latitude, flags.longitude);
+		return A3(
+			author$project$Grouping$showInGroups,
+			_List_fromArray(
+				[
+					{
+					filter: function (event) {
+						return A2(
+							elm$core$Debug$log,
+							'Distance',
+							author$project$Location$inKm(
+								A2(author$project$Location$distanceFrom, event.venue.location, userLocation))) < 120;
+					},
+					specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+						function ($) {
+							return $.minimumPrice;
+						}),
+					title: 'Nearby concerts'
+				},
+					{
+					filter: function (event) {
+						return author$project$Location$inKm(
+							A2(author$project$Location$distanceFrom, event.venue.location, userLocation)) < 300;
+					},
+					specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+						function ($) {
+							return $.minimumPrice;
+						}),
+					title: 'Concerts in 300 km'
+				},
+					{
+					filter: function (event) {
+						return author$project$Location$inKm(
+							A2(author$project$Location$distanceFrom, event.venue.location, userLocation)) < 800;
+					},
+					specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+						function ($) {
+							return $.minimumPrice;
+						}),
+					title: 'Concerts in 800 km'
+				},
+					{
+					filter: function (_n0) {
+						return true;
+					},
+					specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+						function ($) {
+							return $.minimumPrice;
+						}),
+					title: 'Farther away'
+				}
+				]),
+			author$project$Event$viewEvent,
+			events);
+	});
 var author$project$EventList$loadingView = elm$html$Html$text('Loading...');
 var author$project$EventList$view = function (model) {
 	switch (model.$) {
 		case 'LoadingEvents':
 			return author$project$EventList$loadingView;
 		case 'EventsLoaded':
+			var flags = model.a;
 			var events = model.b;
-			return author$project$EventList$eventsView(events);
+			return A2(author$project$EventList$eventsView, flags, events);
 		default:
 			var errorMsg = model.a;
 			return author$project$EventList$errorView(errorMsg);
@@ -7872,23 +8424,7 @@ var elm$browser$Debugger$Overlay$viewProblemType = function (_n0) {
 					A2(elm$core$List$map, elm$browser$Debugger$Overlay$problemToString, problems)) + '.'))
 			]));
 };
-var elm$html$Html$a = _VirtualDom_node('a');
-var elm$html$Html$p = _VirtualDom_node('p');
 var elm$html$Html$ul = _VirtualDom_node('ul');
-var elm$json$Json$Encode$string = _Json_wrap;
-var elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			elm$json$Json$Encode$string(string));
-	});
-var elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
-};
 var elm$browser$Debugger$Overlay$viewBadMetadata = function (_n0) {
 	var message = _n0.message;
 	var problems = _n0.problems;
@@ -8070,7 +8606,6 @@ var elm$browser$Debugger$Overlay$viewMessage = F4(
 						]))
 				]));
 	});
-var elm$html$Html$span = _VirtualDom_node('span');
 var elm$browser$Debugger$Overlay$button = F2(
 	function (msg, label) {
 		return A2(
@@ -8145,24 +8680,6 @@ var elm$browser$Debugger$Overlay$viewMiniControls = F2(
 	});
 var elm$browser$Debugger$Overlay$explanationBad = '\nThe messages in this history do not match the messages handled by your\nprogram. I noticed changes in the following types:\n';
 var elm$browser$Debugger$Overlay$explanationRisky = '\nThis history seems old. It will work with this program, but some\nmessages have been added since the history was created:\n';
-var elm$core$List$intersperse = F2(
-	function (sep, xs) {
-		if (!xs.b) {
-			return _List_Nil;
-		} else {
-			var hd = xs.a;
-			var tl = xs.b;
-			var step = F2(
-				function (x, rest) {
-					return A2(
-						elm$core$List$cons,
-						sep,
-						A2(elm$core$List$cons, x, rest));
-				});
-			var spersed = A3(elm$core$List$foldr, step, _List_Nil, tl);
-			return A2(elm$core$List$cons, hd, spersed);
-		}
-	});
 var elm$browser$Debugger$Overlay$viewMention = F2(
 	function (tags, verbed) {
 		var _n0 = A2(
@@ -9139,7 +9656,6 @@ var elm$browser$Debugger$Expando$viewSequenceOpen = function (values) {
 var elm$browser$Debugger$Main$ExpandoMsg = function (a) {
 	return {$: 'ExpandoMsg', a: a};
 };
-var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
 var elm$html$Html$Attributes$title = elm$html$Html$Attributes$stringProperty('title');
 var elm$browser$Debugger$History$viewMessage = F3(
 	function (currentIndex, index, msg) {
@@ -10855,13 +11371,6 @@ var elm$browser$Debugger$Overlay$uploadDecoder = A3(
 var elm$browser$Debugger$Report$Fine = {$: 'Fine'};
 var elm$browser$Debugger$Report$Impossible = {$: 'Impossible'};
 var elm$browser$Debugger$Report$Risky = {$: 'Risky'};
-var elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
-};
 var elm$browser$Debugger$Report$some = function (list) {
 	return !elm$core$List$isEmpty(list);
 };
@@ -11312,4 +11821,4 @@ _Platform_export({'EventList':{'init':author$project$EventList$main(
 				},
 				A2(elm$json$Json$Decode$field, 'latitude', elm$json$Json$Decode$float));
 		},
-		A2(elm$json$Json$Decode$field, 'longitude', elm$json$Json$Decode$float)))({"versions":{"elm":"0.19.0"},"types":{"message":"EventList.Msg","aliases":{"Event.Event":{"args":[],"type":"{ minimumPrice : Basics.Float, numberOfTickets : Basics.Int, startsAt : Time.DateTime.DateTime, listingsUrl : String.String, venue : Event.Venue }"},"Event.Venue":{"args":[],"type":"{ name : String.String, city : String.String, country : String.String, location : Location.Location }"},"Http.Response":{"args":["body"],"type":"{ url : String.String, status : { code : Basics.Int, message : String.String }, headers : Dict.Dict String.String String.String, body : body }"}},"unions":{"EventList.Msg":{"args":[],"tags":{"EventsReceived":["List.List Event.Event"],"ErrorOccuredOnApiCall":["Http.Error"],"Other":[]}},"Location.Location":{"args":[],"tags":{"Location":["{ longitude : Basics.Float, latitude : Basics.Float }"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"String.String":{"args":[],"tags":{"String":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Http.Response String.String"],"BadPayload":["String.String","Http.Response String.String"]}},"Time.DateTime.DateTime":{"args":[],"tags":{"DateTime":["{ date : Time.Date.Date, offset : Basics.Int }"]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Time.Date.Date":{"args":[],"tags":{"Date":["{ year : Basics.Int, month : Time.Date.Month, day : Basics.Int }"]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}},"Time.Date.Month":{"args":[],"tags":{"Jan":[],"Feb":[],"Mar":[],"Apr":[],"May":[],"Jun":[],"Jul":[],"Aug":[],"Sep":[],"Oct":[],"Nov":[],"Dec":[]}}}}})}});}(this));
+		A2(elm$json$Json$Decode$field, 'longitude', elm$json$Json$Decode$float)))({"versions":{"elm":"0.19.0"},"types":{"message":"EventList.Msg","aliases":{"Event.Event":{"args":[],"type":"{ id : Basics.Int, minimumPrice : Basics.Float, numberOfTickets : Basics.Int, startsAt : Time.DateTime.DateTime, listingsUrl : String.String, venue : Event.Venue }"},"Event.Venue":{"args":[],"type":"{ name : String.String, city : String.String, country : String.String, location : Location.Location }"},"Http.Response":{"args":["body"],"type":"{ url : String.String, status : { code : Basics.Int, message : String.String }, headers : Dict.Dict String.String String.String, body : body }"}},"unions":{"EventList.Msg":{"args":[],"tags":{"EventsReceived":["List.List Event.Event"],"ErrorOccuredOnApiCall":["Http.Error"],"Other":[]}},"Location.Location":{"args":[],"tags":{"Location":["{ longitude : Basics.Float, latitude : Basics.Float }"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"String.String":{"args":[],"tags":{"String":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Http.Response String.String"],"BadPayload":["String.String","Http.Response String.String"]}},"Time.DateTime.DateTime":{"args":[],"tags":{"DateTime":["{ date : Time.Date.Date, offset : Basics.Int }"]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Time.Date.Date":{"args":[],"tags":{"Date":["{ year : Basics.Int, month : Time.Date.Month, day : Basics.Int }"]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}},"Time.Date.Month":{"args":[],"tags":{"Jan":[],"Feb":[],"Mar":[],"Apr":[],"May":[],"Jun":[],"Jul":[],"Aug":[],"Sep":[],"Oct":[],"Nov":[],"Dec":[]}}}}})}});}(this));

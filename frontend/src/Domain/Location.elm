@@ -1,4 +1,4 @@
-module Location exposing 
+module Domain.Location exposing 
     ( Location, locationDecoder, fromCoordinates
     , Distance, distanceFrom, inMeter, inKm
     )
@@ -42,6 +42,9 @@ inKm (Distance dm) =
     dm / 1000
 
 
+{-| Calculate great-circle distance between two coordinates using the 'haversine' formula
+as [described here][https://www.movable-type.co.uk/scripts/latlong.html].
+-}
 distanceFrom : Location -> Location -> Distance
 distanceFrom (Location l1) (Location l2) =
     let

@@ -1,14 +1,17 @@
-module EventList exposing 
+module EventList exposing
     ( main
     , reactor
     )
 
 import Browser
-import Event exposing (Event)
+import Domain.Event as Domain
+import Grouping
 import Html exposing (..)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json
+import List.Extra as List
+import Domain.Location as Location
 import Time.DateTime as Time
 
 
@@ -32,7 +35,7 @@ reactor =
 
 type Model
     = LoadingEvents Flags
-    | EventsLoaded Flags (List Event)
+    | EventsLoaded Flags (List Domain.Event)
     | ApiCallFailed String
 
 
@@ -48,7 +51,7 @@ defaultFlags : Flags
 defaultFlags =
     { latitude = 47.498185
     , longitude = 19.040073
-    , accessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOjEyMSwiaWF0IjoxNTM2NjA1MTU0LCJzY29wZSI6IiIsInQiOjAsImp0aSI6IlVaTmZTSHZRbFNJeVMvVVdZZjBMWUhNblZuQWFsbzViVnBkSENlblFrZjU4SVBrS2lRSDNXMGdhWXZWa1ZsOUVTSTMxdlgyWUdDdGxXc3kwenhFcDlFMWU0blRYd2EyWVJ3QjUrcHNaRmQ0PSIsInZnZy1zdiI6Ijk5NWMzNmY4MTQ5NjRlOGZhMGZmYjFkMjRmMGFlZGM3IiwiZXhwIjoxNTM2NjkxNTU0LCJhdXRoLXR5cGUiOjF9.msXe4Pi7kEfgcmO17jFC2SFQjPG24KxFLq_Qeb2mcBo"
+    , accessToken = "<accesstoken>"
     , artistId = 11881
     }
 
@@ -57,7 +60,7 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
         apiRequest =
-            Event.getEvents flags.artistId flags.accessToken
+            Domain.getEvents flags.artistId flags.accessToken
                 |> Http.send
                     (\result ->
                         case result of
@@ -72,7 +75,7 @@ init flags =
 
 
 type Msg
-    = EventsReceived (List Event)
+    = EventsReceived (List Domain.Event)
     | ErrorOccuredOnApiCall Http.Error
     | Other
 
@@ -84,8 +87,9 @@ update msg model =
             ( EventsLoaded flags events, Cmd.none )
 
         ( LoadingEvents _, ErrorOccuredOnApiCall err ) ->
-            ( ApiCallFailed ("A communication error occured"), Cmd.none )   -- err |> Debug.toString
+            ( ApiCallFailed "A communication error occured", Cmd.none )
 
+        -- err |> Debug.toString
         _ ->
             ( model, Cmd.none )
 
@@ -100,8 +104,8 @@ view model =
         LoadingEvents _ ->
             loadingView
 
-        EventsLoaded _ events ->
-            eventsView events
+        EventsLoaded flags events ->
+            eventsView flags events
 
         ApiCallFailed errorMsg ->
             errorView errorMsg
@@ -113,42 +117,31 @@ errorView errorMsg =
         , text errorMsg
         ]
 
+
 loadingView =
     text "Loading..."
 
 
-eventsView events =
-    div [] (events |> List.map viewEvent)
-
-viewEvent event =
-    div []
-        [ h1 [] 
-            [ text event.venue.name
-            , text "––"
-            , text event.venue.city
+eventsView : Flags -> List Domain.Event -> Html msg
+eventsView flags events =
+    let
+        userLocation =
+            Location.fromCoordinates flags.latitude flags.longitude
+    in
+    events
+        |> Grouping.showInGroups
+            [ { title = "Nearby concerts"
+              , filter = \event -> (userLocation |> Location.distanceFrom event.venue.location |> Location.inKm |> Debug.log "Distance") < 120
+              , specialItemSelector = List.minimumBy .minimumPrice
+              }
+            , { title = "Concerts in 300 km"
+              , filter = \event -> (userLocation |> Location.distanceFrom event.venue.location |> Location.inKm) < 300
+              , specialItemSelector = List.minimumBy .minimumPrice
+              }
+            , { title = "Concerts in 800 km"
+              , filter = \event -> (userLocation |> Location.distanceFrom event.venue.location |> Location.inKm) < 800
+              , specialItemSelector = List.minimumBy .minimumPrice
+              }
+            , { title = "Farther away", filter = \_ -> True, specialItemSelector = List.minimumBy .minimumPrice }
             ]
-        , h2 []
-            [ text (event.startsAt |> monthAbbrv)
-            , text (event.startsAt |> Time.day |> String.fromInt)
-            , text ", "
-            , text (event.startsAt |> Time.hour |> String.fromInt)
-            , text (event.startsAt |> Time.minute |> String.fromInt)
-            ]
-        ]
-
-
-monthAbbrv monthSeq =
-    case monthSeq |> Time.month of
-        1 -> "Jan"
-        2 -> "Feb"
-        3 -> "Mar"
-        4 -> "Apr"
-        5 -> "May"
-        6 -> "Jun"
-        7 -> "Jul"
-        8 -> "Aug"
-        9 -> "Sep"
-        10 -> "Oct"
-        11 -> "Nov"
-        12 -> "Dec"
-        _ -> "DateTime.month never returns anything outside the above range."
+            Domain.viewEvent

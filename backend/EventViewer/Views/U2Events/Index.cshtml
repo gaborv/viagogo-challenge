@@ -2,7 +2,7 @@
     ViewData["Title"] = "Upcoming U2 Events";
 }
 
-<h2>@ViewData["Title"]</h2>
+<h2 class="p-3 mb-4 bg-dark text-white">@ViewData["Title"]</h2>
 
 <div id="eventsWidget"></div>
 
@@ -18,10 +18,10 @@
         var app = Elm.EventList.init({
           node: document.getElementById("eventsWidget"),
           flags: {
-            latitude: 47.498185,
-            longitude: 19.040073,
-            accessToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOjEyMSwiaWF0IjoxNTM2NzAxMDM4LCJzY29wZSI6IiIsInQiOjAsImp0aSI6IlE4VWRpYllLRzZxS1BXNjZpZ0lwWHc1S0FkMGxHaEc0WGh2U0plck5pQjBkUDdpeERDODB1QlUxNnoxUU85VktLQUdJWkR4RzRRL0UvYk80VE1YMklwNVVJaDJINk5laC9jOW50KzgwclNFPSIsInZnZy1zdiI6ImYxYzhiNWYzMGE4YzRiMTRhZmY5YzhlZGIxYjllYmFjIiwiZXhwIjoxNTM2Nzg3NDM4LCJhdXRoLXR5cGUiOjF9.DO7tl1kewifgmHtkFfIhKsXTOTPCwjrSdcVzFCbhud0",
-            artistId: 11881
+            latitude: @ViewData["Latitude"],
+            longitude: @ViewData["Longitude"],
+            accessToken: "@ViewData["AccessToken"]",
+            artistId: @ViewData["CategoryId"]
           }
         });
     </script>
