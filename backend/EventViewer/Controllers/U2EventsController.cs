@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using EventViewer.ViagogoAPI;
 using GogoKit;
 using GogoKit.Models.Response;
 using Microsoft.AspNetCore.Mvc;
@@ -15,21 +16,16 @@ namespace EventViewer.Controllers
     {
         private readonly int categoryId = 11881;
 
-        private async Task<OAuth2Token> GetAccessToken()
-        {
-            // TODO: cache tokens in session store, and replace them only when expired
-            var api = new ViagogoClient(
-                            new ProductHeaderValue("EventViewer"),
-                            "clientID", "clientSecret");
-                
-            return await api.OAuth2.GetClientAccessTokenAsync(new string[]{});
-        }
+        private readonly IAccessTokenProvider accessTokenProvider;
 
         // GET: /<controller>/
         public async Task<IActionResult> Index()
         {
-            ViewData["AccessToken"] = (await GetAccessToken()).AccessToken;
+            ViewData["AccessToken"] = await accessTokenProvider.GetAccessToken();
             ViewData["CategoryId"] = categoryId;
+
+            // TODO: these coordinates should be resolved from the IP, using one of the publicly available services
+            // I chose to keep them hard coded to show the value of the grouped views, for a European use-case
             ViewData["Latitude"] = 47.384860;
             ViewData["Longitude"] = 8.522303;
             return View();
@@ -39,7 +35,12 @@ namespace EventViewer.Controllers
         // GET: /<controller>/<listingId>
         public IActionResult Listing(int eventId)
         {
-            return View();
+            throw new NotImplementedException("Listings view is not yet implemented");
+        }
+
+        public U2EventsController(IAccessTokenProvider accessTokenProvider)
+        {
+            this.accessTokenProvider = accessTokenProvider;
         }
     }
 }

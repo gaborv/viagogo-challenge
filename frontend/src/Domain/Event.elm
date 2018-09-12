@@ -35,7 +35,7 @@ eventDecoder =
         (Json.field "number_of_tickets" Json.int)
         (Json.field "start_date" iso8601Decoder)
         (Json.at [ "_links", "event:listings", "href" ] Json.string)
-        (Json.at [ "_links", "event:localwebpage", "href" ] Json.string)
+        (Json.at [ "_links", "event:webpage", "href" ] Json.string)
         (Json.at [ "_embedded", "venue" ] venueDecoder)
 
 

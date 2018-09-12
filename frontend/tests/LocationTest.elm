@@ -6,7 +6,7 @@ import Test exposing (..)
 
 import Json.Decode
 
-import Location
+import Domain.Location as Location
 
 
 suite : Test

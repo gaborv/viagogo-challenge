@@ -7,8 +7,8 @@ import Test exposing (..)
 import Json.Decode
 import Time.DateTime as Time
 
-import Event
-import Location
+import Domain.Event as Event
+import Domain.Location as Location
 
 sampleResponse =
     """
@@ -37,7 +37,7 @@ sampleResponse =
                     "affiliate_commission_tier": "Normal",
                     "id": 2570447,
                     "name": "U2",
-                    "start_date": "2018-09-12T18:00:00+02:00",
+                    "start_date": "2018-09-12T18:00:00+00:00",
                     "end_date": null,
                     "on_sale_date": "2018-01-31T10:00:00+01:00",
                     "date_confirmed": true,
@@ -130,9 +130,10 @@ suite =
                     |> Expect.equal 
                         ( Ok
                             [ 
-                                { minimumPrice = 85.45
+                                { id =2570447
+                                , minimumPrice = 85.45
                                 , numberOfTickets = 424
-                                , eventDateTime = 
+                                , startsAt = 
                                     Time.dateTime 
                                         { year = 2018
                                         , month = 9
@@ -142,7 +143,8 @@ suite =
                                         , second = 0
                                         , millisecond = 0
                                         }
-                                , listingsUrl = "https://api.viagogo.net/v2/events/2570447/listings?category_id=11881"
+                                , listingsApiUrl = "https://api.viagogo.net/v2/events/2570447/listings?category_id=11881"
+                                , listingsWebSite = "http://www.viagogo.com/ww/Concert-Tickets/Rock-and-Pop/U2-Tickets/E-2570447"
                                 , venue =
                                     { name = "AccorHotels Arena"
                                     , city = "Paris"
