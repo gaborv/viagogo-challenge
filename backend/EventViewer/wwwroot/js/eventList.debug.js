@@ -2610,6 +2610,52 @@ function _Platform_mergeExportsDebug(moduleName, obj, exports)
 
 
 
+function _Time_now(millisToPosix)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(millisToPosix(Date.now())));
+	});
+}
+
+var _Time_setInterval = F2(function(interval, task)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var id = setInterval(function() { _Scheduler_rawSpawn(task); }, interval);
+		return function() { clearInterval(id); };
+	});
+});
+
+function _Time_here()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(
+			A2(elm$time$Time$customZone, -(new Date().getTimezoneOffset()), _List_Nil)
+		));
+	});
+}
+
+
+function _Time_getZoneName()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		try
+		{
+			var name = elm$time$Time$Name(Intl.DateTimeFormat().resolvedOptions().timeZone);
+		}
+		catch (e)
+		{
+			var name = elm$time$Time$Offset(new Date().getTimezoneOffset());
+		}
+		callback(_Scheduler_succeed(name));
+	});
+}
+
+
+
 
 // HELPERS
 
@@ -5157,6 +5203,10 @@ function _Browser_load(url)
 		}
 	}));
 }
+var author$project$EventList$LoadingEvents = F2(
+	function (a, b) {
+		return {$: 'LoadingEvents', a: a, b: b};
+	});
 var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var elm$core$Array$foldr = F3(
 	function (func, baseCase, _n0) {
@@ -5243,7 +5293,7 @@ var elm$http$Http$Internal$Header = F2(
 		return {$: 'Header', a: a, b: b};
 	});
 var elm$http$Http$header = elm$http$Http$Internal$Header;
-var author$project$AuthorizedRequest$autorizationHeader = function (accessToken) {
+var author$project$Domain$AuthorizedRequest$autorizationHeader = function (accessToken) {
 	return A2(elm$http$Http$header, 'Authorization', 'Bearer ' + accessToken);
 };
 var elm$core$Basics$False = {$: 'False'};
@@ -6220,7 +6270,7 @@ var elm$http$Http$Internal$Request = function (a) {
 	return {$: 'Request', a: a};
 };
 var elm$http$Http$request = elm$http$Http$Internal$Request;
-var author$project$AuthorizedRequest$get = F3(
+var author$project$Domain$AuthorizedRequest$get = F3(
 	function (accessToken, url, decoder) {
 		return elm$http$Http$request(
 			{
@@ -6228,7 +6278,7 @@ var author$project$AuthorizedRequest$get = F3(
 				expect: elm$http$Http$expectJson(decoder),
 				headers: _List_fromArray(
 					[
-						author$project$AuthorizedRequest$autorizationHeader(accessToken)
+						author$project$Domain$AuthorizedRequest$autorizationHeader(accessToken)
 					]),
 				method: 'GET',
 				timeout: elm$core$Maybe$Nothing,
@@ -6236,9 +6286,9 @@ var author$project$AuthorizedRequest$get = F3(
 				withCredentials: false
 			});
 	});
-var author$project$Event$Event = F6(
-	function (id, minimumPrice, numberOfTickets, startsAt, listingsUrl, venue) {
-		return {id: id, listingsUrl: listingsUrl, minimumPrice: minimumPrice, numberOfTickets: numberOfTickets, startsAt: startsAt, venue: venue};
+var author$project$Domain$Event$Event = F7(
+	function (id, minimumPrice, numberOfTickets, startsAt, listingsApiUrl, listingsWebSite, venue) {
+		return {id: id, listingsApiUrl: listingsApiUrl, listingsWebSite: listingsWebSite, minimumPrice: minimumPrice, numberOfTickets: numberOfTickets, startsAt: startsAt, venue: venue};
 	});
 var elm$core$Basics$composeR = F3(
 	function (f, g, x) {
@@ -7262,7 +7312,7 @@ var isaacseymour$deprecated_time$Time$Iso8601$parseDateTime = A2(
 var isaacseymour$deprecated_time$Time$Iso8601$toDateTime = function (input) {
 	return A2(elm$parser$Parser$Advanced$run, isaacseymour$deprecated_time$Time$Iso8601$parseDateTime, input);
 };
-var author$project$Event$iso8601Decoder = A2(
+var author$project$Domain$Event$iso8601Decoder = A2(
 	elm$json$Json$Decode$andThen,
 	A2(
 		elm$core$Basics$composeR,
@@ -7273,24 +7323,24 @@ var author$project$Event$iso8601Decoder = A2(
 			elm$core$Result$withDefault(
 				elm$json$Json$Decode$fail('Wrong date format on event.')))),
 	elm$json$Json$Decode$string);
-var author$project$Event$Venue = F4(
+var author$project$Domain$Event$Venue = F4(
 	function (name, city, country, location) {
 		return {city: city, country: country, location: location, name: name};
 	});
-var author$project$Location$Location = function (a) {
+var author$project$Domain$Location$Location = function (a) {
 	return {$: 'Location', a: a};
 };
-var author$project$Location$fromCoordinates = F2(
+var author$project$Domain$Location$fromCoordinates = F2(
 	function (latitude, longitude) {
-		return author$project$Location$Location(
+		return author$project$Domain$Location$Location(
 			{latitude: latitude, longitude: longitude});
 	});
 var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$float = _Json_decodeFloat;
 var elm$json$Json$Decode$map2 = _Json_map2;
-var author$project$Location$locationDecoder = A3(
+var author$project$Domain$Location$locationDecoder = A3(
 	elm$json$Json$Decode$map2,
-	author$project$Location$fromCoordinates,
+	author$project$Domain$Location$fromCoordinates,
 	A2(elm$json$Json$Decode$field, 'latitude', elm$json$Json$Decode$float),
 	A2(elm$json$Json$Decode$field, 'longitude', elm$json$Json$Decode$float));
 var elm$core$List$foldrHelper = F4(
@@ -7353,9 +7403,9 @@ var elm$json$Json$Decode$at = F2(
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
 	});
 var elm$json$Json$Decode$map4 = _Json_map4;
-var author$project$Event$venueDecoder = A5(
+var author$project$Domain$Event$venueDecoder = A5(
 	elm$json$Json$Decode$map4,
-	author$project$Event$Venue,
+	author$project$Domain$Event$Venue,
 	A2(elm$json$Json$Decode$field, 'name', elm$json$Json$Decode$string),
 	A2(elm$json$Json$Decode$field, 'city', elm$json$Json$Decode$string),
 	A2(
@@ -7363,12 +7413,12 @@ var author$project$Event$venueDecoder = A5(
 		_List_fromArray(
 			['_embedded', 'country', 'name']),
 		elm$json$Json$Decode$string),
-	author$project$Location$locationDecoder);
+	author$project$Domain$Location$locationDecoder);
 var elm$json$Json$Decode$int = _Json_decodeInt;
-var elm$json$Json$Decode$map6 = _Json_map6;
-var author$project$Event$eventDecoder = A7(
-	elm$json$Json$Decode$map6,
-	author$project$Event$Event,
+var elm$json$Json$Decode$map7 = _Json_map7;
+var author$project$Domain$Event$eventDecoder = A8(
+	elm$json$Json$Decode$map7,
+	author$project$Domain$Event$Event,
 	A2(elm$json$Json$Decode$field, 'id', elm$json$Json$Decode$int),
 	A2(
 		elm$json$Json$Decode$at,
@@ -7376,7 +7426,7 @@ var author$project$Event$eventDecoder = A7(
 			['min_ticket_price', 'amount']),
 		elm$json$Json$Decode$float),
 	A2(elm$json$Json$Decode$field, 'number_of_tickets', elm$json$Json$Decode$int),
-	A2(elm$json$Json$Decode$field, 'start_date', author$project$Event$iso8601Decoder),
+	A2(elm$json$Json$Decode$field, 'start_date', author$project$Domain$Event$iso8601Decoder),
 	A2(
 		elm$json$Json$Decode$at,
 		_List_fromArray(
@@ -7385,33 +7435,35 @@ var author$project$Event$eventDecoder = A7(
 	A2(
 		elm$json$Json$Decode$at,
 		_List_fromArray(
+			['_links', 'event:localwebpage', 'href']),
+		elm$json$Json$Decode$string),
+	A2(
+		elm$json$Json$Decode$at,
+		_List_fromArray(
 			['_embedded', 'venue']),
-		author$project$Event$venueDecoder));
+		author$project$Domain$Event$venueDecoder));
 var elm$json$Json$Decode$list = _Json_decodeList;
-var author$project$Event$eventListDecoder = A2(
+var author$project$Domain$Event$eventListDecoder = A2(
 	elm$json$Json$Decode$at,
 	_List_fromArray(
 		['_embedded', 'items']),
-	elm$json$Json$Decode$list(author$project$Event$eventDecoder));
-var author$project$Event$eventsUrl = function (categoryId) {
+	elm$json$Json$Decode$list(author$project$Domain$Event$eventDecoder));
+var author$project$Domain$Event$eventsUrl = function (categoryId) {
 	return 'https://api.viagogo.net/v2/categories/' + (elm$core$String$fromInt(categoryId) + '/events?page_size=1000&sort=date');
 };
-var author$project$Event$getEvents = F2(
+var author$project$Domain$Event$getEvents = F2(
 	function (categoryId, accessToken) {
 		return A3(
-			author$project$AuthorizedRequest$get,
+			author$project$Domain$AuthorizedRequest$get,
 			accessToken,
-			author$project$Event$eventsUrl(categoryId),
-			author$project$Event$eventListDecoder);
+			author$project$Domain$Event$eventsUrl(categoryId),
+			author$project$Domain$Event$eventListDecoder);
 	});
 var author$project$EventList$ErrorOccuredOnApiCall = function (a) {
 	return {$: 'ErrorOccuredOnApiCall', a: a};
 };
 var author$project$EventList$EventsReceived = function (a) {
 	return {$: 'EventsReceived', a: a};
-};
-var author$project$EventList$LoadingEvents = function (a) {
-	return {$: 'LoadingEvents', a: a};
 };
 var elm$core$Task$Perform = function (a) {
 	return {$: 'Perform', a: a};
@@ -7530,55 +7582,386 @@ var elm$http$Http$send = F2(
 			resultToMessage,
 			elm$http$Http$toTask(request_));
 	});
+var author$project$EventList$getEventsApiRequest = F2(
+	function (artistId, accessToken) {
+		return A2(
+			elm$http$Http$send,
+			function (result) {
+				if (result.$ === 'Ok') {
+					var events = result.a;
+					return author$project$EventList$EventsReceived(events);
+				} else {
+					var error = result.a;
+					return author$project$EventList$ErrorOccuredOnApiCall(error);
+				}
+			},
+			A2(author$project$Domain$Event$getEvents, artistId, accessToken));
+	});
+var elm$time$Time$Posix = function (a) {
+	return {$: 'Posix', a: a};
+};
+var elm$time$Time$millisToPosix = elm$time$Time$Posix;
 var author$project$EventList$init = function (flags) {
-	var apiRequest = A2(
-		elm$http$Http$send,
-		function (result) {
-			if (result.$ === 'Ok') {
-				var events = result.a;
-				return author$project$EventList$EventsReceived(events);
-			} else {
-				var error = result.a;
-				return author$project$EventList$ErrorOccuredOnApiCall(error);
-			}
-		},
-		A2(author$project$Event$getEvents, flags.artistId, flags.accessToken));
 	return _Utils_Tuple2(
-		author$project$EventList$LoadingEvents(flags),
-		apiRequest);
+		A2(
+			author$project$EventList$LoadingEvents,
+			flags,
+			elm$time$Time$millisToPosix(1)),
+		A2(author$project$EventList$getEventsApiRequest, flags.artistId, flags.accessToken));
+};
+var author$project$EventList$TimeTick = function (a) {
+	return {$: 'TimeTick', a: a};
+};
+var elm$time$Time$Every = F2(
+	function (a, b) {
+		return {$: 'Every', a: a, b: b};
+	});
+var elm$time$Time$State = F2(
+	function (taggers, processes) {
+		return {processes: processes, taggers: taggers};
+	});
+var elm$time$Time$init = elm$core$Task$succeed(
+	A2(elm$time$Time$State, elm$core$Dict$empty, elm$core$Dict$empty));
+var elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3(elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
+	});
+var elm$core$Dict$merge = F6(
+	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
+		var stepState = F3(
+			function (rKey, rValue, _n0) {
+				stepState:
+				while (true) {
+					var list = _n0.a;
+					var result = _n0.b;
+					if (!list.b) {
+						return _Utils_Tuple2(
+							list,
+							A3(rightStep, rKey, rValue, result));
+					} else {
+						var _n2 = list.a;
+						var lKey = _n2.a;
+						var lValue = _n2.b;
+						var rest = list.b;
+						if (_Utils_cmp(lKey, rKey) < 0) {
+							var $temp$rKey = rKey,
+								$temp$rValue = rValue,
+								$temp$_n0 = _Utils_Tuple2(
+								rest,
+								A3(leftStep, lKey, lValue, result));
+							rKey = $temp$rKey;
+							rValue = $temp$rValue;
+							_n0 = $temp$_n0;
+							continue stepState;
+						} else {
+							if (_Utils_cmp(lKey, rKey) > 0) {
+								return _Utils_Tuple2(
+									list,
+									A3(rightStep, rKey, rValue, result));
+							} else {
+								return _Utils_Tuple2(
+									rest,
+									A4(bothStep, lKey, lValue, rValue, result));
+							}
+						}
+					}
+				}
+			});
+		var _n3 = A3(
+			elm$core$Dict$foldl,
+			stepState,
+			_Utils_Tuple2(
+				elm$core$Dict$toList(leftDict),
+				initialResult),
+			rightDict);
+		var leftovers = _n3.a;
+		var intermediateResult = _n3.b;
+		return A3(
+			elm$core$List$foldl,
+			F2(
+				function (_n4, result) {
+					var k = _n4.a;
+					var v = _n4.b;
+					return A3(leftStep, k, v, result);
+				}),
+			intermediateResult,
+			leftovers);
+	});
+var elm$core$Process$kill = _Scheduler_kill;
+var elm$time$Time$addMySub = F2(
+	function (_n0, state) {
+		var interval = _n0.a;
+		var tagger = _n0.b;
+		var _n1 = A2(elm$core$Dict$get, interval, state);
+		if (_n1.$ === 'Nothing') {
+			return A3(
+				elm$core$Dict$insert,
+				interval,
+				_List_fromArray(
+					[tagger]),
+				state);
+		} else {
+			var taggers = _n1.a;
+			return A3(
+				elm$core$Dict$insert,
+				interval,
+				A2(elm$core$List$cons, tagger, taggers),
+				state);
+		}
+	});
+var elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var elm$core$Process$spawn = _Scheduler_spawn;
+var elm$time$Time$Name = function (a) {
+	return {$: 'Name', a: a};
+};
+var elm$time$Time$Offset = function (a) {
+	return {$: 'Offset', a: a};
+};
+var elm$time$Time$Zone = F2(
+	function (a, b) {
+		return {$: 'Zone', a: a, b: b};
+	});
+var elm$time$Time$customZone = elm$time$Time$Zone;
+var elm$time$Time$setInterval = _Time_setInterval;
+var elm$time$Time$spawnHelp = F3(
+	function (router, intervals, processes) {
+		if (!intervals.b) {
+			return elm$core$Task$succeed(processes);
+		} else {
+			var interval = intervals.a;
+			var rest = intervals.b;
+			var spawnTimer = elm$core$Process$spawn(
+				A2(
+					elm$time$Time$setInterval,
+					interval,
+					A2(elm$core$Platform$sendToSelf, router, interval)));
+			var spawnRest = function (id) {
+				return A3(
+					elm$time$Time$spawnHelp,
+					router,
+					rest,
+					A3(elm$core$Dict$insert, interval, id, processes));
+			};
+			return A2(elm$core$Task$andThen, spawnRest, spawnTimer);
+		}
+	});
+var elm$time$Time$onEffects = F3(
+	function (router, subs, _n0) {
+		var processes = _n0.processes;
+		var rightStep = F3(
+			function (_n6, id, _n7) {
+				var spawns = _n7.a;
+				var existing = _n7.b;
+				var kills = _n7.c;
+				return _Utils_Tuple3(
+					spawns,
+					existing,
+					A2(
+						elm$core$Task$andThen,
+						function (_n5) {
+							return kills;
+						},
+						elm$core$Process$kill(id)));
+			});
+		var newTaggers = A3(elm$core$List$foldl, elm$time$Time$addMySub, elm$core$Dict$empty, subs);
+		var leftStep = F3(
+			function (interval, taggers, _n4) {
+				var spawns = _n4.a;
+				var existing = _n4.b;
+				var kills = _n4.c;
+				return _Utils_Tuple3(
+					A2(elm$core$List$cons, interval, spawns),
+					existing,
+					kills);
+			});
+		var bothStep = F4(
+			function (interval, taggers, id, _n3) {
+				var spawns = _n3.a;
+				var existing = _n3.b;
+				var kills = _n3.c;
+				return _Utils_Tuple3(
+					spawns,
+					A3(elm$core$Dict$insert, interval, id, existing),
+					kills);
+			});
+		var _n1 = A6(
+			elm$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			newTaggers,
+			processes,
+			_Utils_Tuple3(
+				_List_Nil,
+				elm$core$Dict$empty,
+				elm$core$Task$succeed(_Utils_Tuple0)));
+		var spawnList = _n1.a;
+		var existingDict = _n1.b;
+		var killTask = _n1.c;
+		return A2(
+			elm$core$Task$andThen,
+			function (newProcesses) {
+				return elm$core$Task$succeed(
+					A2(elm$time$Time$State, newTaggers, newProcesses));
+			},
+			A2(
+				elm$core$Task$andThen,
+				function (_n2) {
+					return A3(elm$time$Time$spawnHelp, router, spawnList, existingDict);
+				},
+				killTask));
+	});
+var elm$time$Time$now = _Time_now(elm$time$Time$millisToPosix);
+var elm$time$Time$onSelfMsg = F3(
+	function (router, interval, state) {
+		var _n0 = A2(elm$core$Dict$get, interval, state.taggers);
+		if (_n0.$ === 'Nothing') {
+			return elm$core$Task$succeed(state);
+		} else {
+			var taggers = _n0.a;
+			var tellTaggers = function (time) {
+				return elm$core$Task$sequence(
+					A2(
+						elm$core$List$map,
+						function (tagger) {
+							return A2(
+								elm$core$Platform$sendToApp,
+								router,
+								tagger(time));
+						},
+						taggers));
+			};
+			return A2(
+				elm$core$Task$andThen,
+				function (_n1) {
+					return elm$core$Task$succeed(state);
+				},
+				A2(elm$core$Task$andThen, tellTaggers, elm$time$Time$now));
+		}
+	});
+var elm$time$Time$subMap = F2(
+	function (f, _n0) {
+		var interval = _n0.a;
+		var tagger = _n0.b;
+		return A2(
+			elm$time$Time$Every,
+			interval,
+			A2(elm$core$Basics$composeL, f, tagger));
+	});
+_Platform_effectManagers['Time'] = _Platform_createManager(elm$time$Time$init, elm$time$Time$onEffects, elm$time$Time$onSelfMsg, 0, elm$time$Time$subMap);
+var elm$time$Time$subscription = _Platform_leaf('Time');
+var elm$time$Time$every = F2(
+	function (interval, tagger) {
+		return elm$time$Time$subscription(
+			A2(elm$time$Time$Every, interval, tagger));
+	});
+var author$project$EventList$subscriptions = function (_n0) {
+	return A2(elm$time$Time$every, 3 * 1000, author$project$EventList$TimeTick);
 };
 var author$project$EventList$ApiCallFailed = function (a) {
 	return {$: 'ApiCallFailed', a: a};
 };
-var author$project$EventList$EventsLoaded = F2(
-	function (a, b) {
-		return {$: 'EventsLoaded', a: a, b: b};
-	});
+var author$project$EventList$EventsLoaded = function (a) {
+	return {$: 'EventsLoaded', a: a};
+};
+var author$project$EventList$GroupByDistance = {$: 'GroupByDistance'};
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$EventList$update = F2(
 	function (msg, model) {
 		var _n0 = _Utils_Tuple2(model, msg);
-		_n0$2:
+		_n0$6:
 		while (true) {
-			if (_n0.a.$ === 'LoadingEvents') {
-				switch (_n0.b.$) {
-					case 'EventsReceived':
-						var flags = _n0.a.a;
-						var events = _n0.b.a;
-						return _Utils_Tuple2(
-							A2(author$project$EventList$EventsLoaded, flags, events),
-							elm$core$Platform$Cmd$none);
-					case 'ErrorOccuredOnApiCall':
-						var err = _n0.b.a;
-						return _Utils_Tuple2(
-							author$project$EventList$ApiCallFailed('A communication error occured'),
-							elm$core$Platform$Cmd$none);
-					default:
-						break _n0$2;
-				}
-			} else {
-				break _n0$2;
+			switch (_n0.a.$) {
+				case 'EventsLoaded':
+					switch (_n0.b.$) {
+						case 'TimeTick':
+							var state = _n0.a.a;
+							var now = _n0.b.a;
+							var newState = _Utils_update(
+								state,
+								{now: now});
+							return _Utils_Tuple2(
+								author$project$EventList$EventsLoaded(newState),
+								A2(author$project$EventList$getEventsApiRequest, state.artistId, state.accessToken));
+						case 'GroupBy':
+							var state = _n0.a.a;
+							var newGroupingType = _n0.b.a;
+							var newState = _Utils_update(
+								state,
+								{selectedGrouping: newGroupingType});
+							return _Utils_Tuple2(
+								author$project$EventList$EventsLoaded(newState),
+								elm$core$Platform$Cmd$none);
+						case 'EventsReceived':
+							var state = _n0.a.a;
+							var events = _n0.b.a;
+							var newState = _Utils_update(
+								state,
+								{eventsData: events});
+							return _Utils_Tuple2(
+								author$project$EventList$EventsLoaded(newState),
+								elm$core$Platform$Cmd$none);
+						default:
+							break _n0$6;
+					}
+				case 'LoadingEvents':
+					switch (_n0.b.$) {
+						case 'TimeTick':
+							var _n1 = _n0.a;
+							var flags = _n1.a;
+							var time = _n0.b.a;
+							return _Utils_Tuple2(
+								A2(author$project$EventList$LoadingEvents, flags, time),
+								elm$core$Platform$Cmd$none);
+						case 'EventsReceived':
+							var _n2 = _n0.a;
+							var flags = _n2.a;
+							var time = _n2.b;
+							var events = _n0.b.a;
+							var appState = {
+								accessToken: flags.accessToken,
+								artistId: flags.artistId,
+								estimatedLocation: A2(author$project$Domain$Location$fromCoordinates, flags.latitude, flags.longitude),
+								eventsData: events,
+								now: time,
+								selectedGrouping: author$project$EventList$GroupByDistance
+							};
+							return _Utils_Tuple2(
+								author$project$EventList$EventsLoaded(appState),
+								elm$core$Platform$Cmd$none);
+						case 'ErrorOccuredOnApiCall':
+							var _n3 = _n0.a;
+							var err = _n0.b.a;
+							return _Utils_Tuple2(
+								author$project$EventList$ApiCallFailed('A communication error occured'),
+								elm$core$Platform$Cmd$none);
+						default:
+							break _n0$6;
+					}
+				default:
+					break _n0$6;
 			}
 		}
 		return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
@@ -7617,7 +8000,7 @@ var isaacseymour$deprecated_time$Time$DateTime$month = function (_n0) {
 	var data = _n0.a;
 	return isaacseymour$deprecated_time$Time$Date$month(data.date);
 };
-var author$project$Event$monthName = function (monthSeq) {
+var author$project$Domain$Event$monthName = function (monthSeq) {
 	var _n0 = isaacseymour$deprecated_time$Time$DateTime$month(monthSeq);
 	switch (_n0) {
 		case 1:
@@ -7664,8 +8047,8 @@ var isaacseymour$deprecated_time$Time$DateTime$year = function (_n0) {
 	var data = _n0.a;
 	return isaacseymour$deprecated_time$Time$Date$year(data.date);
 };
-var author$project$Event$dateToString = function (date) {
-	return author$project$Event$monthName(date) + (' ' + (elm$core$String$fromInt(
+var author$project$Domain$Event$dateToString = function (date) {
+	return author$project$Domain$Event$monthName(date) + (' ' + (elm$core$String$fromInt(
 		isaacseymour$deprecated_time$Time$DateTime$day(date)) + (', ' + elm$core$String$fromInt(
 		isaacseymour$deprecated_time$Time$DateTime$year(date)))));
 };
@@ -7677,7 +8060,7 @@ var isaacseymour$deprecated_time$Time$DateTime$minute = function (_n0) {
 	var offset = _n0.a.offset;
 	return (A2(elm$core$Basics$modBy, isaacseymour$deprecated_time$Time$Internal$hourMs, offset) / isaacseymour$deprecated_time$Time$Internal$minuteMs) | 0;
 };
-var author$project$Event$time24h = function (time) {
+var author$project$Domain$Event$time24h = function (time) {
 	var minute = (isaacseymour$deprecated_time$Time$DateTime$minute(time) < 10) ? ('0' + elm$core$String$fromInt(
 		isaacseymour$deprecated_time$Time$DateTime$minute(time))) : elm$core$String$fromInt(
 		isaacseymour$deprecated_time$Time$DateTime$minute(time));
@@ -7706,7 +8089,7 @@ var elm$html$Html$Attributes$href = function (url) {
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
-var author$project$Event$viewEvent = F2(
+var author$project$Domain$Event$viewEvent = F2(
 	function (isLowestPrice, event) {
 		var header = isLowestPrice ? A2(
 			elm$html$Html$div,
@@ -7787,7 +8170,7 @@ var author$project$Event$viewEvent = F2(
 							_List_fromArray(
 								[
 									elm$html$Html$text(
-									author$project$Event$dateToString(event.startsAt))
+									author$project$Domain$Event$dateToString(event.startsAt))
 								])),
 							A2(
 							elm$html$Html$h6,
@@ -7798,7 +8181,7 @@ var author$project$Event$viewEvent = F2(
 							_List_fromArray(
 								[
 									elm$html$Html$text(
-									author$project$Event$time24h(event.startsAt))
+									author$project$Domain$Event$time24h(event.startsAt))
 								])),
 							A2(
 							elm$html$Html$p,
@@ -7818,7 +8201,7 @@ var author$project$Event$viewEvent = F2(
 							elm$html$Html$a,
 							_List_fromArray(
 								[
-									elm$html$Html$Attributes$href('#'),
+									elm$html$Html$Attributes$href(event.listingsWebSite),
 									elm$html$Html$Attributes$class('btn btn-success')
 								]),
 							_List_fromArray(
@@ -7828,6 +8211,229 @@ var author$project$Event$viewEvent = F2(
 						]))
 				]));
 	});
+var author$project$EventList$GroupBy = function (a) {
+	return {$: 'GroupBy', a: a};
+};
+var author$project$EventList$GroupByDate = {$: 'GroupByDate'};
+var elm$core$Debug$log = _Debug_log;
+var elm_community$list_extra$List$Extra$minimumBy = F2(
+	function (f, ls) {
+		var minBy = F2(
+			function (x, _n1) {
+				var y = _n1.a;
+				var fy = _n1.b;
+				var fx = f(x);
+				return (_Utils_cmp(fx, fy) < 0) ? _Utils_Tuple2(x, fx) : _Utils_Tuple2(y, fy);
+			});
+		if (ls.b) {
+			if (!ls.b.b) {
+				var l_ = ls.a;
+				return elm$core$Maybe$Just(l_);
+			} else {
+				var l_ = ls.a;
+				var ls_ = ls.b;
+				return elm$core$Maybe$Just(
+					A3(
+						elm$core$List$foldl,
+						minBy,
+						_Utils_Tuple2(
+							l_,
+							f(l_)),
+						ls_).a);
+			}
+		} else {
+			return elm$core$Maybe$Nothing;
+		}
+	});
+var isaacseymour$deprecated_time$Time$Date$delta = F2(
+	function (_n0, _n1) {
+		var d1 = _n0.a;
+		var d2 = _n1.a;
+		return {
+			days: A3(isaacseymour$deprecated_time$Time$Date$daysFromYearMonthDay, d1.year, d1.month, d1.day) - A3(isaacseymour$deprecated_time$Time$Date$daysFromYearMonthDay, d2.year, d2.month, d2.day),
+			months: ((elm$core$Basics$abs(d1.year) * 12) + isaacseymour$deprecated_time$Time$Date$monthToInt(d1.month)) - ((elm$core$Basics$abs(d2.year) * 12) + isaacseymour$deprecated_time$Time$Date$monthToInt(d2.month)),
+			years: d1.year - d2.year
+		};
+	});
+var isaacseymour$deprecated_time$Time$DateTime$delta = F2(
+	function (_n0, _n1) {
+		var t1 = _n0.a;
+		var t2 = _n1.a;
+		var _n2 = A2(isaacseymour$deprecated_time$Time$Date$delta, t1.date, t2.date);
+		var years = _n2.years;
+		var months = _n2.months;
+		var days = _n2.days;
+		var milliseconds = (days * isaacseymour$deprecated_time$Time$Internal$dayMs) + (t1.offset - t2.offset);
+		var hours = (milliseconds / isaacseymour$deprecated_time$Time$Internal$hourMs) | 0;
+		var minutes = (milliseconds / isaacseymour$deprecated_time$Time$Internal$minuteMs) | 0;
+		var seconds = (milliseconds / isaacseymour$deprecated_time$Time$Internal$secondMs) | 0;
+		return {days: days, hours: hours, milliseconds: milliseconds, minutes: minutes, months: months, seconds: seconds, years: years};
+	});
+var elm$time$Time$posixToMillis = function (_n0) {
+	var millis = _n0.a;
+	return millis;
+};
+var isaacseymour$deprecated_time$Time$DateTime$dateTime = function (data) {
+	return isaacseymour$deprecated_time$Time$DateTime$DateTime(
+		{
+			date: A3(isaacseymour$deprecated_time$Time$Date$date, data.year, data.month, data.day),
+			offset: isaacseymour$deprecated_time$Time$Internal$offsetFromTimeData(data)
+		});
+};
+var isaacseymour$deprecated_time$Time$Internal$zero = {day: 1, hour: 0, millisecond: 0, minute: 0, month: 1, second: 0, year: 0};
+var isaacseymour$deprecated_time$Time$DateTime$zero = isaacseymour$deprecated_time$Time$Internal$zero;
+var isaacseymour$deprecated_time$Time$DateTime$epoch = isaacseymour$deprecated_time$Time$DateTime$dateTime(
+	_Utils_update(
+		isaacseymour$deprecated_time$Time$DateTime$zero,
+		{year: 1970}));
+var isaacseymour$deprecated_time$Time$DateTime$fromPosix = function (posix) {
+	return A2(
+		isaacseymour$deprecated_time$Time$DateTime$addMilliseconds,
+		elm$time$Time$posixToMillis(posix),
+		isaacseymour$deprecated_time$Time$DateTime$epoch);
+};
+var author$project$EventList$eventDateGrouping = function (now) {
+	return _List_fromArray(
+		[
+			{
+			filter: function (event) {
+				return A2(
+					elm$core$Debug$log,
+					'Time delta',
+					A2(
+						isaacseymour$deprecated_time$Time$DateTime$delta,
+						event.startsAt,
+						isaacseymour$deprecated_time$Time$DateTime$fromPosix(now)).days) <= 7;
+			},
+			specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+				function ($) {
+					return $.minimumPrice;
+				}),
+			title: 'Next seven days'
+		},
+			{
+			filter: function (event) {
+				return A2(
+					isaacseymour$deprecated_time$Time$DateTime$delta,
+					event.startsAt,
+					isaacseymour$deprecated_time$Time$DateTime$fromPosix(now)).days <= 30;
+			},
+			specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+				function ($) {
+					return $.minimumPrice;
+				}),
+			title: 'Next 30 days'
+		},
+			{
+			filter: function (event) {
+				return A2(
+					isaacseymour$deprecated_time$Time$DateTime$delta,
+					event.startsAt,
+					isaacseymour$deprecated_time$Time$DateTime$fromPosix(now)).months <= 6;
+			},
+			specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+				function ($) {
+					return $.minimumPrice;
+				}),
+			title: 'Next 6 months'
+		},
+			{
+			filter: function (_n0) {
+				return true;
+			},
+			specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+				function ($) {
+					return $.minimumPrice;
+				}),
+			title: 'Later'
+		}
+		]);
+};
+var author$project$Domain$Location$Distance = function (a) {
+	return {$: 'Distance', a: a};
+};
+var elm$core$Basics$atan2 = _Basics_atan2;
+var elm$core$Basics$cos = _Basics_cos;
+var elm$core$Basics$pi = _Basics_pi;
+var elm$core$Basics$degrees = function (angleInDegrees) {
+	return (angleInDegrees * elm$core$Basics$pi) / 180;
+};
+var elm$core$Basics$sin = _Basics_sin;
+var elm$core$Basics$sqrt = _Basics_sqrt;
+var author$project$Domain$Location$distanceFrom = F2(
+	function (_n0, _n1) {
+		var l1 = _n0.a;
+		var l2 = _n1.a;
+		var radiusOfEarth = 6371008;
+		var dLon = elm$core$Basics$degrees(l2.longitude - l1.longitude);
+		var dLat = elm$core$Basics$degrees(l2.latitude - l1.latitude);
+		var a = A2(
+			elm$core$Basics$pow,
+			elm$core$Basics$sin(dLat / 2),
+			2) + ((elm$core$Basics$cos(
+			elm$core$Basics$degrees(l1.latitude)) * elm$core$Basics$cos(
+			elm$core$Basics$degrees(l2.latitude))) * A2(
+			elm$core$Basics$pow,
+			elm$core$Basics$sin(dLon / 2),
+			2));
+		var c = 2 * A2(
+			elm$core$Basics$atan2,
+			elm$core$Basics$sqrt(a),
+			elm$core$Basics$sqrt(1 - a));
+		return author$project$Domain$Location$Distance(radiusOfEarth * c);
+	});
+var author$project$Domain$Location$inKm = function (_n0) {
+	var dm = _n0.a;
+	return dm / 1000;
+};
+var author$project$EventList$venueDistanceGrouping = function (userLocation) {
+	return _List_fromArray(
+		[
+			{
+			filter: function (event) {
+				return author$project$Domain$Location$inKm(
+					A2(author$project$Domain$Location$distanceFrom, event.venue.location, userLocation)) < 120;
+			},
+			specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+				function ($) {
+					return $.minimumPrice;
+				}),
+			title: 'Nearby concerts'
+		},
+			{
+			filter: function (event) {
+				return author$project$Domain$Location$inKm(
+					A2(author$project$Domain$Location$distanceFrom, event.venue.location, userLocation)) < 300;
+			},
+			specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+				function ($) {
+					return $.minimumPrice;
+				}),
+			title: 'Concerts in 300 km'
+		},
+			{
+			filter: function (event) {
+				return author$project$Domain$Location$inKm(
+					A2(author$project$Domain$Location$distanceFrom, event.venue.location, userLocation)) < 800;
+			},
+			specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+				function ($) {
+					return $.minimumPrice;
+				}),
+			title: 'Concerts in 800 km'
+		},
+			{
+			filter: function (_n0) {
+				return true;
+			},
+			specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
+				function ($) {
+					return $.minimumPrice;
+				}),
+			title: 'Farther away'
+		}
+		]);
+};
 var elm$core$List$isEmpty = function (xs) {
 	if (!xs.b) {
 		return true;
@@ -8133,139 +8739,96 @@ var author$project$Grouping$showInGroups = F3(
 					author$project$Grouping$renderGrouping(viewItem),
 					groups)));
 	});
-var author$project$Location$Distance = function (a) {
-	return {$: 'Distance', a: a};
+var elm$html$Html$button = _VirtualDom_node('button');
+var elm$html$Html$Attributes$type_ = elm$html$Html$Attributes$stringProperty('type');
+var elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
 };
-var elm$core$Basics$atan2 = _Basics_atan2;
-var elm$core$Basics$cos = _Basics_cos;
-var elm$core$Basics$pi = _Basics_pi;
-var elm$core$Basics$degrees = function (angleInDegrees) {
-	return (angleInDegrees * elm$core$Basics$pi) / 180;
-};
-var elm$core$Basics$sin = _Basics_sin;
-var elm$core$Basics$sqrt = _Basics_sqrt;
-var author$project$Location$distanceFrom = F2(
-	function (_n0, _n1) {
-		var l1 = _n0.a;
-		var l2 = _n1.a;
-		var radiusOfEarth = 6371008;
-		var dLon = elm$core$Basics$degrees(l2.longitude - l1.longitude);
-		var dLat = elm$core$Basics$degrees(l2.latitude - l1.latitude);
-		var a = A2(
-			elm$core$Basics$pow,
-			elm$core$Basics$sin(dLat / 2),
-			2) + ((elm$core$Basics$cos(
-			elm$core$Basics$degrees(l1.latitude)) * elm$core$Basics$cos(
-			elm$core$Basics$degrees(l2.latitude))) * A2(
-			elm$core$Basics$pow,
-			elm$core$Basics$sin(dLon / 2),
-			2));
-		var c = 2 * A2(
-			elm$core$Basics$atan2,
-			elm$core$Basics$sqrt(a),
-			elm$core$Basics$sqrt(1 - a));
-		return author$project$Location$Distance(radiusOfEarth * c);
+var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$Normal(decoder));
 	});
-var author$project$Location$inKm = function (_n0) {
-	var dm = _n0.a;
-	return dm / 1000;
+var elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
 };
-var elm$core$Debug$log = _Debug_log;
-var elm_community$list_extra$List$Extra$minimumBy = F2(
-	function (f, ls) {
-		var minBy = F2(
-			function (x, _n1) {
-				var y = _n1.a;
-				var fy = _n1.b;
-				var fx = f(x);
-				return (_Utils_cmp(fx, fy) < 0) ? _Utils_Tuple2(x, fx) : _Utils_Tuple2(y, fy);
-			});
-		if (ls.b) {
-			if (!ls.b.b) {
-				var l_ = ls.a;
-				return elm$core$Maybe$Just(l_);
-			} else {
-				var l_ = ls.a;
-				var ls_ = ls.b;
-				return elm$core$Maybe$Just(
-					A3(
-						elm$core$List$foldl,
-						minBy,
-						_Utils_Tuple2(
-							l_,
-							f(l_)),
-						ls_).a);
-			}
+var author$project$EventList$eventsView = function (appState) {
+	var selectedGrouping = function () {
+		var _n0 = appState.selectedGrouping;
+		if (_n0.$ === 'GroupByDate') {
+			return author$project$EventList$eventDateGrouping(appState.now);
 		} else {
-			return elm$core$Maybe$Nothing;
+			return author$project$EventList$venueDistanceGrouping(appState.estimatedLocation);
 		}
-	});
-var author$project$EventList$eventsView = F2(
-	function (flags, events) {
-		var userLocation = A2(author$project$Location$fromCoordinates, flags.latitude, flags.longitude);
-		return A3(
-			author$project$Grouping$showInGroups,
-			_List_fromArray(
-				[
-					{
-					filter: function (event) {
-						return A2(
-							elm$core$Debug$log,
-							'Distance',
-							author$project$Location$inKm(
-								A2(author$project$Location$distanceFrom, event.venue.location, userLocation))) < 120;
-					},
-					specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
-						function ($) {
-							return $.minimumPrice;
-						}),
-					title: 'Nearby concerts'
-				},
-					{
-					filter: function (event) {
-						return author$project$Location$inKm(
-							A2(author$project$Location$distanceFrom, event.venue.location, userLocation)) < 300;
-					},
-					specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
-						function ($) {
-							return $.minimumPrice;
-						}),
-					title: 'Concerts in 300 km'
-				},
-					{
-					filter: function (event) {
-						return author$project$Location$inKm(
-							A2(author$project$Location$distanceFrom, event.venue.location, userLocation)) < 800;
-					},
-					specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
-						function ($) {
-							return $.minimumPrice;
-						}),
-					title: 'Concerts in 800 km'
-				},
-					{
-					filter: function (_n0) {
-						return true;
-					},
-					specialItemSelector: elm_community$list_extra$List$Extra$minimumBy(
-						function ($) {
-							return $.minimumPrice;
-						}),
-					title: 'Farther away'
-				}
-				]),
-			author$project$Event$viewEvent,
-			events);
-	});
+	}();
+	var eventsHtml = A3(author$project$Grouping$showInGroups, selectedGrouping, author$project$Domain$Event$viewEvent, appState.eventsData);
+	return A2(
+		elm$html$Html$div,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$class('row')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('col-xl-3')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$button,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$type_('button'),
+								elm$html$Html$Attributes$class('btn btn-outline-secondary m-3'),
+								elm$html$Html$Events$onClick(
+								author$project$EventList$GroupBy(author$project$EventList$GroupByDistance))
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text('Group by distance of venue')
+							])),
+						A2(
+						elm$html$Html$button,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$type_('button'),
+								elm$html$Html$Attributes$class('btn btn-outline-secondary m-3'),
+								elm$html$Html$Events$onClick(
+								author$project$EventList$GroupBy(author$project$EventList$GroupByDate))
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text('Group by date of concert')
+							]))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('col-xl-9')
+					]),
+				_List_fromArray(
+					[eventsHtml]))
+			]));
+};
 var author$project$EventList$loadingView = elm$html$Html$text('Loading...');
 var author$project$EventList$view = function (model) {
 	switch (model.$) {
 		case 'LoadingEvents':
 			return author$project$EventList$loadingView;
 		case 'EventsLoaded':
-			var flags = model.a;
-			var events = model.b;
-			return A2(author$project$EventList$eventsView, flags, events);
+			var appState = model.a;
+			return author$project$EventList$eventsView(appState);
 		default:
 			var errorMsg = model.a;
 			return author$project$EventList$errorView(errorMsg);
@@ -8474,26 +9037,8 @@ var elm$browser$Debugger$Overlay$viewBadMetadata = function (_n0) {
 };
 var elm$browser$Debugger$Overlay$Cancel = {$: 'Cancel'};
 var elm$browser$Debugger$Overlay$Proceed = {$: 'Proceed'};
-var elm$html$Html$button = _VirtualDom_node('button');
 var elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
-var elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			elm$virtual_dom$VirtualDom$on,
-			event,
-			elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		elm$html$Html$Events$on,
-		'click',
-		elm$json$Json$Decode$succeed(msg));
-};
 var elm$browser$Debugger$Overlay$viewButtons = function (buttons) {
 	var btn = F2(
 		function (msg, string) {
@@ -10306,31 +10851,6 @@ var elm$browser$Debugger$Metadata$collectBadUnions = F3(
 				list);
 		}
 	});
-var elm$core$Dict$foldl = F3(
-	function (func, acc, dict) {
-		foldl:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return acc;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var $temp$func = func,
-					$temp$acc = A3(
-					func,
-					key,
-					value,
-					A3(elm$core$Dict$foldl, func, acc, left)),
-					$temp$dict = right;
-				func = $temp$func;
-				acc = $temp$acc;
-				dict = $temp$dict;
-				continue foldl;
-			}
-		}
-	});
 var elm$browser$Debugger$Metadata$isPortable = function (_n0) {
 	var types = _n0.types;
 	var badAliases = A3(elm$core$Dict$foldl, elm$browser$Debugger$Metadata$collectBadAliases, _List_Nil, types.aliases);
@@ -11248,67 +11768,6 @@ var elm$browser$Debugger$Report$hasTagChanges = function (tagChanges) {
 		tagChanges,
 		A4(elm$browser$Debugger$Report$TagChanges, _List_Nil, _List_Nil, _List_Nil, true));
 };
-var elm$core$Dict$merge = F6(
-	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
-		var stepState = F3(
-			function (rKey, rValue, _n0) {
-				stepState:
-				while (true) {
-					var list = _n0.a;
-					var result = _n0.b;
-					if (!list.b) {
-						return _Utils_Tuple2(
-							list,
-							A3(rightStep, rKey, rValue, result));
-					} else {
-						var _n2 = list.a;
-						var lKey = _n2.a;
-						var lValue = _n2.b;
-						var rest = list.b;
-						if (_Utils_cmp(lKey, rKey) < 0) {
-							var $temp$rKey = rKey,
-								$temp$rValue = rValue,
-								$temp$_n0 = _Utils_Tuple2(
-								rest,
-								A3(leftStep, lKey, lValue, result));
-							rKey = $temp$rKey;
-							rValue = $temp$rValue;
-							_n0 = $temp$_n0;
-							continue stepState;
-						} else {
-							if (_Utils_cmp(lKey, rKey) > 0) {
-								return _Utils_Tuple2(
-									list,
-									A3(rightStep, rKey, rValue, result));
-							} else {
-								return _Utils_Tuple2(
-									rest,
-									A4(bothStep, lKey, lValue, rValue, result));
-							}
-						}
-					}
-				}
-			});
-		var _n3 = A3(
-			elm$core$Dict$foldl,
-			stepState,
-			_Utils_Tuple2(
-				elm$core$Dict$toList(leftDict),
-				initialResult),
-			rightDict);
-		var leftovers = _n3.a;
-		var intermediateResult = _n3.b;
-		return A3(
-			elm$core$List$foldl,
-			F2(
-				function (_n4, result) {
-					var k = _n4.a;
-					var v = _n4.b;
-					return A3(leftStep, k, v, result);
-				}),
-			intermediateResult,
-			leftovers);
-	});
 var elm$browser$Debugger$Metadata$checkUnion = F4(
 	function (name, old, _new, changes) {
 		var tagChanges = A6(
@@ -11788,17 +12247,8 @@ var elm$url$Url$fromString = function (str) {
 		A2(elm$core$String$dropLeft, 8, str)) : elm$core$Maybe$Nothing);
 };
 var elm$browser$Browser$element = _Browser_element;
-var elm$core$Platform$Sub$batch = _Platform_batch;
-var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$EventList$main = elm$browser$Browser$element(
-	{
-		init: author$project$EventList$init,
-		subscriptions: function (_n0) {
-			return elm$core$Platform$Sub$none;
-		},
-		update: author$project$EventList$update,
-		view: author$project$EventList$view
-	});
+	{init: author$project$EventList$init, subscriptions: author$project$EventList$subscriptions, update: author$project$EventList$update, view: author$project$EventList$view});
 _Platform_export({'EventList':{'init':author$project$EventList$main(
 	A2(
 		elm$json$Json$Decode$andThen,
@@ -11821,4 +12271,4 @@ _Platform_export({'EventList':{'init':author$project$EventList$main(
 				},
 				A2(elm$json$Json$Decode$field, 'latitude', elm$json$Json$Decode$float));
 		},
-		A2(elm$json$Json$Decode$field, 'longitude', elm$json$Json$Decode$float)))({"versions":{"elm":"0.19.0"},"types":{"message":"EventList.Msg","aliases":{"Event.Event":{"args":[],"type":"{ id : Basics.Int, minimumPrice : Basics.Float, numberOfTickets : Basics.Int, startsAt : Time.DateTime.DateTime, listingsUrl : String.String, venue : Event.Venue }"},"Event.Venue":{"args":[],"type":"{ name : String.String, city : String.String, country : String.String, location : Location.Location }"},"Http.Response":{"args":["body"],"type":"{ url : String.String, status : { code : Basics.Int, message : String.String }, headers : Dict.Dict String.String String.String, body : body }"}},"unions":{"EventList.Msg":{"args":[],"tags":{"EventsReceived":["List.List Event.Event"],"ErrorOccuredOnApiCall":["Http.Error"],"Other":[]}},"Location.Location":{"args":[],"tags":{"Location":["{ longitude : Basics.Float, latitude : Basics.Float }"]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"String.String":{"args":[],"tags":{"String":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Http.Response String.String"],"BadPayload":["String.String","Http.Response String.String"]}},"Time.DateTime.DateTime":{"args":[],"tags":{"DateTime":["{ date : Time.Date.Date, offset : Basics.Int }"]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Time.Date.Date":{"args":[],"tags":{"Date":["{ year : Basics.Int, month : Time.Date.Month, day : Basics.Int }"]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}},"Time.Date.Month":{"args":[],"tags":{"Jan":[],"Feb":[],"Mar":[],"Apr":[],"May":[],"Jun":[],"Jul":[],"Aug":[],"Sep":[],"Oct":[],"Nov":[],"Dec":[]}}}}})}});}(this));
+		A2(elm$json$Json$Decode$field, 'longitude', elm$json$Json$Decode$float)))({"versions":{"elm":"0.19.0"},"types":{"message":"EventList.Msg","aliases":{"Domain.Event.Event":{"args":[],"type":"{ id : Basics.Int, minimumPrice : Basics.Float, numberOfTickets : Basics.Int, startsAt : Time.DateTime.DateTime, listingsApiUrl : String.String, listingsWebSite : String.String, venue : Domain.Event.Venue }"},"Domain.Event.Venue":{"args":[],"type":"{ name : String.String, city : String.String, country : String.String, location : Domain.Location.Location }"},"Http.Response":{"args":["body"],"type":"{ url : String.String, status : { code : Basics.Int, message : String.String }, headers : Dict.Dict String.String String.String, body : body }"}},"unions":{"EventList.Msg":{"args":[],"tags":{"EventsReceived":["List.List Domain.Event.Event"],"ErrorOccuredOnApiCall":["Http.Error"],"TimeTick":["Time.Posix"],"GroupBy":["EventList.GroupingType"]}},"Domain.Location.Location":{"args":[],"tags":{"Location":["{ longitude : Basics.Float, latitude : Basics.Float }"]}},"EventList.GroupingType":{"args":[],"tags":{"GroupByDate":[],"GroupByDistance":[]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"String.String":{"args":[],"tags":{"String":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Http.Response String.String"],"BadPayload":["String.String","Http.Response String.String"]}},"Time.Posix":{"args":[],"tags":{"Posix":["Basics.Int"]}},"Time.DateTime.DateTime":{"args":[],"tags":{"DateTime":["{ date : Time.Date.Date, offset : Basics.Int }"]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Time.Date.Date":{"args":[],"tags":{"Date":["{ year : Basics.Int, month : Time.Date.Month, day : Basics.Int }"]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}},"Time.Date.Month":{"args":[],"tags":{"Jan":[],"Feb":[],"Mar":[],"Apr":[],"May":[],"Jun":[],"Jul":[],"Aug":[],"Sep":[],"Oct":[],"Nov":[],"Dec":[]}}}}})}});}(this));

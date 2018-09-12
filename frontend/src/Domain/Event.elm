@@ -21,19 +21,21 @@ type alias Event =
     , minimumPrice : Float
     , numberOfTickets : Int
     , startsAt : Time.DateTime
-    , listingsUrl : String
+    , listingsApiUrl : String
+    , listingsWebSite : String
     , venue : Venue
     }
 
 
 eventDecoder : Json.Decoder Event
 eventDecoder =
-    Json.map6 Event
+    Json.map7 Event
         (Json.field "id" Json.int)
         (Json.at [ "min_ticket_price", "amount" ] Json.float)
         (Json.field "number_of_tickets" Json.int)
         (Json.field "start_date" iso8601Decoder)
         (Json.at [ "_links", "event:listings", "href" ] Json.string)
+        (Json.at [ "_links", "event:localwebpage", "href" ] Json.string)
         (Json.at [ "_embedded", "venue" ] venueDecoder)
 
 
@@ -132,7 +134,7 @@ viewEvent isLowestPrice event =
                     , text ", "
                     , text event.venue.country
                     ]
-                , a [ href "#", class "btn btn-success" ]
+                , a [ href event.listingsWebSite, class "btn btn-success" ]
                     [ text "Buy tickets!" ]
                 ]
             ]
