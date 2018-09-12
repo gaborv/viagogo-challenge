@@ -41,7 +41,9 @@ Building the frontend:
     npm test
 
 
-Building the backend: should be ok from Visual Studio, although I was using Visual Studio for Mac.
+Building and running the backend: 
+ * Change the `clientid`/`clientsecret` values in `ViagogoAPI/VeryBasicAccessTokenProvider`
+ * Just build and run from Visual Studio. (I was using Visual Studio for Mac, so no guarantees for Windows, but it should work)
 
 For convenience I icluded the generated js files in the backend codebase, so the frontend build can be skipped.
 

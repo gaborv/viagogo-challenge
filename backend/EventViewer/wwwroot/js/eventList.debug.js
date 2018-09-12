@@ -7435,7 +7435,7 @@ var author$project$Domain$Event$eventDecoder = A8(
 	A2(
 		elm$json$Json$Decode$at,
 		_List_fromArray(
-			['_links', 'event:localwebpage', 'href']),
+			['_links', 'event:webpage', 'href']),
 		elm$json$Json$Decode$string),
 	A2(
 		elm$json$Json$Decode$at,
